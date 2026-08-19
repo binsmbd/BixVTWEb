@@ -13,12 +13,36 @@ Affinity, Inkscape, Aseprite or a pen plotter.
 
 ## Run it
 
+**Just want to open it?** Double-click the launcher for your system:
+
+| System | File |
+| --- | --- |
+| macOS | `start.command` |
+| Windows | `start.bat` |
+| Linux | `start.sh` |
+
+The launcher starts a local server, opens your browser at the app, and prints the
+address in case you want a second window. Press `Ctrl+C` in that window to stop it.
+
+It uses Node.js when it's installed and falls back to Python automatically. If
+neither is available it tells you where to get Node. (On macOS, the first launch
+may need `chmod +x start.command`, or right-click → Open to get past Gatekeeper.)
+
+**From a terminal:**
+
 ```bash
-npm start          # → http://localhost:5173
+npm start                      # start and open the browser
+npm run serve                  # start without opening a browser
+npm run network                # also serve to phones/tablets on your Wi-Fi
+node server.mjs --port 8080    # pick your own port
 ```
 
-Any static file server works — the app is plain ES modules with zero dependencies.
-(A server *is* needed: ES modules don't load over `file://`.)
+If the port is busy the server quietly moves to the next free one and tells you
+where it landed. It serves the folder it lives in, so the launchers work no matter
+which directory you start them from.
+
+A server *is* required — browsers refuse to load ES modules over `file://`, so
+opening `index.html` directly will not work.
 
 Then drop in an image, or start from one of the built-in sample images —
 they're drawn procedurally in code, so the app is fully usable offline.
@@ -132,7 +156,10 @@ js/
   transforms/         the sixteen transforms + registry
   export/             SVG assembly, rasterisation, palette files
   ui/                 control builder, canvas viewport, application wiring
-server.mjs            dependency-free static server for `npm start`
+server.mjs            dependency-free static server + browser launcher
+start.command         double-click launcher (macOS)
+start.bat             double-click launcher (Windows)
+start.sh              launcher (Linux / terminal)
 ```
 
 The pipeline is a single line of flow:
@@ -209,7 +236,16 @@ network request after the page loads.
 ไฟล์ข้อความ และไฟล์พาเลตต์สี — นำไปใช้งานต่อได้จริงทั้งงานพิมพ์ งานตัดสติกเกอร์
 และงานออกแบบ
 
-เริ่มใช้งาน: `npm start` แล้วเปิด `http://localhost:5173`
+**วิธีเปิดใช้งาน** — ดับเบิลคลิกไฟล์ตัวรันตามระบบที่ใช้ได้เลย:
+`start.command` (macOS) · `start.bat` (Windows) · `start.sh` (Linux)
+ตัวรันจะเปิดเซิร์ฟเวอร์และเปิดเบราว์เซอร์ให้อัตโนมัติ ถ้า port ชนก็ขยับไปตัวถัดไปเอง
+กด `Ctrl+C` ในหน้าต่างนั้นเพื่อปิด
+
+หรือสั่งจากเทอร์มินัล: `npm start` (เปิดเบราว์เซอร์ให้), `npm run serve` (ไม่เปิด),
+`npm run network` (ให้มือถือในวง Wi-Fi เดียวกันเข้าใช้ได้)
+
+*ต้องเปิดผ่านเซิร์ฟเวอร์เท่านั้น* — เปิดไฟล์ `index.html` ตรงๆ จะไม่ทำงาน
+เพราะเบราว์เซอร์ไม่ยอมโหลด ES modules จาก `file://`
 
 ---
 

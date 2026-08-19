@@ -5,9 +5,18 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "dev": "node server.mjs"
+    "dev": "node server.mjs",
+    "serve": "node server.mjs --no-open",
+    "network": "node server.mjs --host 0.0.0.0"
   },
-  "keywords": ["vectorizer", "image-tracing", "pixel-art", "halftone", "svg", "creative-coding"],
+  "keywords": [
+    "vectorizer",
+    "image-tracing",
+    "pixel-art",
+    "halftone",
+    "svg",
+    "creative-coding"
+  ],
   "license": "MIT",
   "private": true
 }

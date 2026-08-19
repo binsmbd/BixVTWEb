@@ -163,6 +163,7 @@ function ready(port, moved) {
   console.log('  \x1b[1m\x1b[38;5;209mBix Transform\x1b[0m is running');
   console.log('');
   console.log(`  Local     \x1b[4m${url}\x1b[0m`);
+  console.log(`  Folder    ${ROOT}`);
   if (lan) console.log(`  Network   \x1b[4mhttp://${lan}:${port}\x1b[0m`);
   if (moved) console.log(`  (port ${START_PORT} was busy, moved to ${port})`);
   console.log('');

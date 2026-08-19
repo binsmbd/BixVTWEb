@@ -44,6 +44,13 @@ which directory you start them from.
 A server *is* required — browsers refuse to load ES modules over `file://`, so
 opening `index.html` directly will not work.
 
+**Seeing `404 Not Found`?** The launcher window prints the folder it is serving —
+check that it is the Bix Transform folder, the one holding `index.html`. The
+usual cause is a launcher (or `server.mjs`) that got moved out of the project
+folder; the launcher now refuses to start in that case and says so. Requests
+that 404 are logged in that window too, so you can see exactly which address
+failed.
+
 Then drop in an image, or start from one of the built-in sample images —
 they're drawn procedurally in code, so the app is fully usable offline.
 

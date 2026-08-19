@@ -4,10 +4,30 @@
 # Node.js is used when available; otherwise it falls back to Python.
 
 set -u
-cd "$(dirname "$0")" || exit 1
+
+# Always work from the folder this script lives in — double-clicking a launcher
+# leaves the shell in your home directory, which would serve the wrong files.
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+cd "$HERE" || exit 1
 
 PORT="${PORT:-5173}"
 URL="http://localhost:${PORT}"
+
+# Fail early and clearly rather than starting a server that 404s everything.
+if [ ! -f "$HERE/index.html" ] || [ ! -d "$HERE/js" ]; then
+  cat <<MSG
+
+  Bix Transform can't start: the app files are missing.
+
+  This launcher is in:
+    $HERE
+
+  It expects index.html, css/ and js/ right next to it. Move the launcher back
+  into the Bix Transform folder (or re-download the project) and try again.
+
+MSG
+  exit 1
+fi
 
 open_browser() {
   sleep 1
@@ -18,7 +38,7 @@ open_browser() {
 }
 
 if command -v node >/dev/null 2>&1; then
-  exec node server.mjs "$@"
+  exec node "$HERE/server.mjs" "$@"
 fi
 
 PYTHON=""
@@ -31,11 +51,12 @@ if [ -n "$PYTHON" ]; then
   echo "  Bix Transform is running (Python fallback — Node.js not found)"
   echo ""
   echo "  Local     $URL"
+  echo "  Folder    $HERE"
   echo ""
   echo "  Press Ctrl+C to stop."
   echo ""
   open_browser "$URL" &
-  exec "$PYTHON" -m http.server "$PORT" --bind 127.0.0.1
+  exec "$PYTHON" -m http.server "$PORT" --bind 127.0.0.1 --directory "$HERE"
 fi
 
 cat <<'MSG'

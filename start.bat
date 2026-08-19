@@ -5,9 +5,24 @@ cd /d "%~dp0"
 
 if "%PORT%"=="" set PORT=5173
 
+rem Fail clearly instead of starting a server that would 404 every request.
+if not exist "%~dp0index.html" (
+    echo.
+    echo   Bix Transform can't start: the app files are missing.
+    echo.
+    echo   This launcher is in:
+    echo     %~dp0
+    echo.
+    echo   It expects index.html, css\ and js\ right next to it. Move the
+    echo   launcher back into the Bix Transform folder and try again.
+    echo.
+    pause
+    goto :eof
+)
+
 where node >nul 2>nul
 if %errorlevel%==0 (
-    node server.mjs %*
+    node "%~dp0server.mjs" %*
     goto :eof
 )
 
@@ -21,7 +36,7 @@ if %errorlevel%==0 (
     echo   Press Ctrl+C to stop.
     echo.
     start "" "http://localhost:%PORT%"
-    python -m http.server %PORT% --bind 127.0.0.1
+    python -m http.server %PORT% --bind 127.0.0.1 --directory "%~dp0"
     goto :eof
 )
 

@@ -9,14 +9,14 @@
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { extname, join, normalize, dirname } from 'node:path';
+import { extname, dirname, resolve, sep, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
 import { networkInterfaces } from 'node:os';
 
 /* Serve the app next to this file, no matter where it was launched from —
    double-clicking a launcher rarely leaves you in the project directory. */
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)));
 
 const argv = process.argv.slice(2);
 const flag = (name) => argv.includes(`--${name}`);
@@ -54,7 +54,7 @@ const escapeHtml = (v) => String(v).replace(/[<>&"']/g, (c) =>
 
 /** A 404 that explains itself — a blank "404 Not Found" tells nobody anything. */
 function notFoundPage(path) {
-  const rootLooksWrong = !existsSync(join(ROOT, 'index.html'));
+  const rootLooksWrong = !existsSync(resolve(ROOT, 'index.html'));
   const reason = rootLooksWrong
     ? `<p class="warn"><b>The app files are not where this server is looking.</b><br>
          It is serving <code>${ROOT}</code>, and there is no <code>index.html</code> there.
@@ -84,20 +84,36 @@ function notFoundPage(path) {
 
 const safeDecode = (v) => { try { return decodeURIComponent(v); } catch { return v; } };
 
+/**
+ * Map a URL path onto a file inside ROOT.
+ *
+ * URL paths are always POSIX-shaped, so they must be normalised with
+ * `posix.normalize` — the platform-aware `normalize()` rewrites "/" to "\" on
+ * Windows, which used to stop the directory-index rule from ever matching and
+ * made every page 404 there. The filesystem join happens afterwards, and the
+ * result is checked to be inside ROOT so "..", encoded or not, cannot escape.
+ */
+export function resolveRequest(pathname, root = ROOT) {
+  let p = posix.normalize(safeDecode(pathname));
+  if (!p.startsWith('/')) p = '/' + p;                 // posix.normalize("/../x") === "/x"
+  if (p.endsWith('/')) p += 'index.html';
+  // Browsers ask for this unprompted; hand them the SVG mark instead of a 404.
+  if (p === '/favicon.ico') p = '/assets/favicon.svg';
+  const file = resolve(root, '.' + p);
+  const inside = file === root || file.startsWith(root + sep);
+  return { file, inside, urlPath: p };
+}
+
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  let path = normalize(safeDecode(url.pathname));
   const log = (status) => {
     if (status === 200 && !VERBOSE) return;
     const tint = status === 200 ? '\x1b[2m' : '\x1b[33m';
     console.log(`  ${tint}${status}  ${req.method} ${safeDecode(url.pathname)}\x1b[0m`);
   };
   try {
-    if (path.includes('..')) { log(403); res.writeHead(403).end('Forbidden'); return; }
-    if (path === '/' || path.endsWith('/')) path += 'index.html';
-    // Browsers ask for this unprompted; hand them the SVG mark instead of a 404.
-    if (path === '/favicon.ico') path = '/assets/favicon.svg';
-    const file = join(ROOT, path);
+    const { file, inside } = resolveRequest(url.pathname);
+    if (!inside) { log(403); res.writeHead(403).end('Forbidden'); return; }
     const info = await stat(file);
     if (!info.isFile()) throw new Error('not a file');
     const body = await readFile(file);
@@ -180,7 +196,7 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
   });
 }
 
-if (!existsSync(join(ROOT, 'index.html'))) {
+if (!existsSync(resolve(ROOT, 'index.html'))) {
   console.error('');
   console.error('  \x1b[33mWarning:\x1b[0m no index.html next to server.mjs.');
   console.error(`  Serving: ${ROOT}`);

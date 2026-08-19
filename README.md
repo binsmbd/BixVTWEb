@@ -44,6 +44,8 @@ which directory you start them from.
 A server *is* required — browsers refuse to load ES modules over `file://`, so
 opening `index.html` directly will not work.
 
+**Tests:** `npm test` (no dependencies — Node's built-in runner).
+
 **Seeing `404 Not Found`?** The launcher window prints the folder it is serving —
 check that it is the Bix Transform folder, the one holding `index.html`. The
 usual cause is a launcher (or `server.mjs`) that got moved out of the project
@@ -164,6 +166,7 @@ js/
   export/             SVG assembly, rasterisation, palette files
   ui/                 control builder, canvas viewport, application wiring
 server.mjs            dependency-free static server + browser launcher
+test/                 path-resolution tests (`npm test`)
 start.command         double-click launcher (macOS)
 start.bat             double-click launcher (Windows)
 start.sh              launcher (Linux / terminal)

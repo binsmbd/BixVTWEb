@@ -36,7 +36,7 @@ if %errorlevel%==0 (
     echo   Press Ctrl+C to stop.
     echo.
     start "" "http://localhost:%PORT%"
-    python -m http.server %PORT% --bind 127.0.0.1 --directory "%~dp0"
+    python -m http.server %PORT% --bind 127.0.0.1 --directory "%~dp0."
     goto :eof
 )
 

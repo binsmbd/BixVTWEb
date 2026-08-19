@@ -8,6 +8,7 @@
  */
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { extname, join, normalize, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
@@ -27,6 +28,7 @@ const value = (name, fallback) => {
 const HOST = value('host', process.env.HOST || '127.0.0.1');
 const START_PORT = Number(value('port', process.env.PORT || 5173));
 const SHOULD_OPEN = !flag('no-open');
+const VERBOSE = flag('verbose');
 const MAX_PORT_TRIES = 20;
 
 const TYPES = {
@@ -47,12 +49,54 @@ const TYPES = {
   '.woff2': 'font/woff2',
 };
 
+const escapeHtml = (v) => String(v).replace(/[<>&"']/g, (c) =>
+  ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/** A 404 that explains itself — a blank "404 Not Found" tells nobody anything. */
+function notFoundPage(path) {
+  const rootLooksWrong = !existsSync(join(ROOT, 'index.html'));
+  const reason = rootLooksWrong
+    ? `<p class="warn"><b>The app files are not where this server is looking.</b><br>
+         It is serving <code>${ROOT}</code>, and there is no <code>index.html</code> there.
+         Run the launcher (<code>start.command</code>, <code>start.bat</code> or
+         <code>start.sh</code>) from inside the Bix&nbsp;Transform folder — the one that
+         contains <code>index.html</code>, <code>css/</code> and <code>js/</code>.</p>`
+    : `<p>The app itself is fine — this address just doesn't match a file.
+         <a href="/">Go to Bix Transform</a>.</p>`;
+  return `<!doctype html><meta charset="utf-8"><title>404 · Bix Transform</title>
+<style>
+  body{margin:0;min-height:100vh;display:grid;place-items:center;background:#0a0b0f;color:#e6e9ef;
+       font:14px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Thai",sans-serif}
+  main{max-width:560px;padding:32px 36px;border:1px solid #23262f;border-radius:3px;background:#14161d}
+  h1{margin:0 0 4px;font-size:17px}
+  .sub{color:#6b7382;margin:0 0 18px}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
+       background:#0f1117;border:1px solid #23262f;border-radius:3px;padding:1px 5px}
+  a{color:#ee6c4d}
+  .warn{border-left:2px solid #ee6c4d;padding-left:12px}
+</style>
+<main>
+  <h1>404 — not found</h1>
+  <p class="sub"><code>${escapeHtml(path)}</code></p>
+  ${reason}
+</main>`;
+}
+
+const safeDecode = (v) => { try { return decodeURIComponent(v); } catch { return v; } };
+
 const server = createServer(async (req, res) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  let path = normalize(safeDecode(url.pathname));
+  const log = (status) => {
+    if (status === 200 && !VERBOSE) return;
+    const tint = status === 200 ? '\x1b[2m' : '\x1b[33m';
+    console.log(`  ${tint}${status}  ${req.method} ${safeDecode(url.pathname)}\x1b[0m`);
+  };
   try {
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    let path = normalize(decodeURIComponent(url.pathname));
-    if (path.includes('..')) { res.writeHead(403).end('Forbidden'); return; }
+    if (path.includes('..')) { log(403); res.writeHead(403).end('Forbidden'); return; }
     if (path === '/' || path.endsWith('/')) path += 'index.html';
+    // Browsers ask for this unprompted; hand them the SVG mark instead of a 404.
+    if (path === '/favicon.ico') path = '/assets/favicon.svg';
     const file = join(ROOT, path);
     const info = await stat(file);
     if (!info.isFile()) throw new Error('not a file');
@@ -63,9 +107,11 @@ const server = createServer(async (req, res) => {
       'Cache-Control': 'no-cache',
     });
     res.end(body);
+    log(200);
   } catch {
-    res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-    res.end('404 Not Found');
+    log(404);
+    res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(notFoundPage(safeDecode(url.pathname)));
   }
 });
 
@@ -131,6 +177,15 @@ for (const sig of ['SIGINT', 'SIGTERM']) {
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(0), 500).unref();
   });
+}
+
+if (!existsSync(join(ROOT, 'index.html'))) {
+  console.error('');
+  console.error('  \x1b[33mWarning:\x1b[0m no index.html next to server.mjs.');
+  console.error(`  Serving: ${ROOT}`);
+  console.error('  Keep server.mjs in the Bix Transform folder, alongside index.html,');
+  console.error('  css/ and js/ — otherwise every page will come back 404.');
+  console.error('');
 }
 
 listen(START_PORT);

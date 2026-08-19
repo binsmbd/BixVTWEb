@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bix Transform — Image to Vector, Pixel &amp; Line Art</title>
+<meta name="description" content="Bix Transform turns any image into editable vectors, pixel art, halftones, line art and more — entirely in your browser.">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="bixgrad" x1="0" y1="32" x2="32" y2="0">
+            <stop offset="0" stop-color="#ee6c4d"/><stop offset="0.55" stop-color="#f4a261"/><stop offset="1" stop-color="#98c1d9"/>
+          </linearGradient>
+        </defs>
+        <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="none" stroke="url(#bixgrad)" stroke-width="2.4"/>
+        <path d="M10 22V10h5.4a3.1 3.1 0 0 1 0 6.2H10M15.4 16.2h1a3.1 3.1 0 0 1 0 6.2H10" fill="none" stroke="url(#bixgrad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="22.5" cy="11" r="1.8" fill="#ee6c4d"/>
+      </svg>
+      <div class="brand-text">
+        <strong>Bix</strong><span>Transform</span>
+      </div>
+    </div>
+
+    <div class="topbar-group">
+      <button class="btn" id="btn-open" title="Open an image (O)">
+        <span class="btn-ico">⬆</span> Open
+      </button>
+      <select class="btn select-btn" id="sample-select" title="Load a built-in sample">
+        <option value="">Samples…</option>
+      </select>
+      <span class="divider"></span>
+      <button class="btn icon" id="btn-undo" title="Undo (Ctrl/Cmd+Z)">↶</button>
+      <button class="btn icon" id="btn-redo" title="Redo (Ctrl/Cmd+Shift+Z)">↷</button>
+      <button class="btn icon" id="btn-random" title="Surprise me — random preset">🎲</button>
+    </div>
+
+    <div class="topbar-group right">
+      <div class="segmented" id="compare-modes" role="group" aria-label="Comparison mode">
+        <button data-mode="result" class="is-active" title="Result only (R)">Result</button>
+        <button data-mode="split" title="Split compare (S) — hold Shift and drag to move">Split</button>
+        <button data-mode="side" title="Side by side">Side</button>
+        <button data-mode="source" title="Original (hold B)">Original</button>
+      </div>
+      <span class="divider"></span>
+      <button class="btn icon panel-toggle" id="btn-panel" title="Show or hide the controls" aria-label="Toggle controls">⚙</button>
+      <button class="btn primary" id="btn-export" title="Export (Ctrl/Cmd+E)">Export</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <nav class="rail" id="tool-rail" aria-label="Transforms"></nav>
+
+    <section class="stage">
+      <div class="stage-bar">
+        <div class="stage-bar-group">
+          <button class="btn icon" id="btn-zoom-out" title="Zoom out (−)">−</button>
+          <button class="btn" id="btn-zoom-level" title="Zoom">100%</button>
+          <button class="btn icon" id="btn-zoom-in" title="Zoom in (+)">+</button>
+          <button class="btn" id="btn-fit" title="Fit to view (F)">Fit</button>
+        </div>
+        <div class="stage-bar-group">
+          <label class="check"><input type="checkbox" id="chk-checker" checked> Checkerboard</label>
+          <label class="check"><input type="checkbox" id="chk-live" checked> Live preview</label>
+          <button class="btn" id="btn-render" title="Re-render now">Render</button>
+        </div>
+        <div class="stage-bar-group right">
+          <span class="pill" id="doc-size">—</span>
+          <span class="pill" id="render-time">—</span>
+        </div>
+      </div>
+
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="view"></canvas>
+        <div class="dropzone" id="dropzone">
+          <div class="dropzone-inner">
+            <div class="dz-mark">⬇</div>
+            <h2>Drop an image to begin</h2>
+            <p>PNG · JPG · WEBP · GIF · SVG — or paste from the clipboard</p>
+            <button class="btn primary" id="btn-open-2">Choose a file</button>
+            <p class="muted small">Nothing is uploaded — every pixel stays in your browser.</p>
+          </div>
+        </div>
+        <div class="busy" id="busy" hidden><div class="spinner"></div><span>Rendering…</span></div>
+      </div>
+
+      <div class="statusbar">
+        <span id="status-tool">—</span>
+        <span class="sep"></span>
+        <span id="status-stats"></span>
+        <span class="grow"></span>
+        <span id="status-msg" class="muted"></span>
+      </div>
+    </section>
+
+    <aside class="inspector" id="inspector">
+      <div class="inspector-head">
+        <h2 id="tool-title">—</h2>
+        <p id="tool-blurb" class="muted small"></p>
+      </div>
+
+      <div class="preset-bar">
+        <select id="preset-select" title="Presets">
+          <option value="">Presets…</option>
+        </select>
+        <button class="btn tiny" id="btn-save-preset" title="Save current settings as a preset">Save</button>
+        <button class="btn tiny" id="btn-delete-preset" title="Delete the selected user preset">Del</button>
+        <button class="btn tiny" id="btn-reset" title="Reset this transform">Reset</button>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab is-active" data-tab="transform" role="tab">Transform</button>
+        <button class="tab" data-tab="adjust" role="tab">Image</button>
+        <button class="tab" data-tab="output" role="tab">Output</button>
+      </div>
+
+      <div class="panel-scroll">
+        <div class="tab-panel is-active" data-panel="transform" id="params"></div>
+        <div class="tab-panel" data-panel="adjust" id="adjust"></div>
+        <div class="tab-panel" data-panel="output" id="output-panel">
+          <div class="ctl-group"><h4 class="ctl-group-title">Document</h4></div>
+          <div class="kv"><span>Source</span><b id="out-source">—</b></div>
+          <div class="kv"><span>Output</span><b id="out-doc">—</b></div>
+          <div class="kv"><span>Kind</span><b id="out-kind">—</b></div>
+          <div class="kv"><span>Detail</span><b id="out-stats">—</b></div>
+          <div class="ctl-group"><h4 class="ctl-group-title">Quick export</h4></div>
+          <div class="quick-export" id="quick-export"></div>
+          <div class="ctl-group"><h4 class="ctl-group-title">Keyboard</h4></div>
+          <div class="kv"><span>Fit / 100%</span><b>F / 0</b></div>
+          <div class="kv"><span>Zoom</span><b>+ / − / wheel</b></div>
+          <div class="kv"><span>Pan</span><b>drag</b></div>
+          <div class="kv"><span>Peek original</span><b>hold B</b></div>
+          <div class="kv"><span>Result / Split</span><b>R / S</b></div>
+          <div class="kv"><span>Move split line</span><b>Shift + drag</b></div>
+          <div class="kv"><span>Undo / Redo</span><b>⌘Z / ⇧⌘Z</b></div>
+          <div class="kv"><span>Open / Export</span><b>⌘O / ⌘E</b></div>
+          <div class="kv"><span>Pick transform</span><b>1 – 9</b></div>
+          <p class="muted small pad">Vector transforms export as true SVG paths — editable in Illustrator, Affinity, Inkscape or Figma. Raster transforms export as PNG, JPEG or WebP at up to 4× the source size.</p>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <div class="modal" id="export-modal" hidden>
+    <div class="modal-card">
+      <header class="modal-head">
+        <h3>Export</h3>
+        <button class="btn icon" id="btn-close-export" aria-label="Close">✕</button>
+      </header>
+      <div class="modal-body">
+        <div class="export-grid">
+          <div class="field">
+            <label for="exp-format">Format</label>
+            <select id="exp-format"></select>
+          </div>
+          <div class="field">
+            <label for="exp-scale">Scale</label>
+            <select id="exp-scale">
+              <option value="0.5">0.5×</option>
+              <option value="1" selected>1× (source size)</option>
+              <option value="2">2×</option>
+              <option value="3">3×</option>
+              <option value="4">4×</option>
+            </select>
+          </div>
+          <div class="field" id="field-quality">
+            <label for="exp-quality">Quality <span id="exp-quality-val">92</span></label>
+            <input type="range" id="exp-quality" min="30" max="100" step="1" value="92">
+          </div>
+          <div class="field">
+            <label for="exp-bg">Background</label>
+            <select id="exp-bg">
+              <option value="keep" selected>As designed</option>
+              <option value="transparent">Transparent</option>
+              <option value="white">White</option>
+              <option value="black">Black</option>
+            </select>
+          </div>
+          <div class="field wide">
+            <label for="exp-name">File name</label>
+            <input type="text" id="exp-name" value="bix-transform">
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="exp-full" checked> Re-render at full quality before export (slower, sharper)</label>
+        <div class="export-preview">
+          <div class="export-info" id="exp-info">—</div>
+        </div>
+      </div>
+      <footer class="modal-foot">
+        <button class="btn" id="btn-copy">Copy to clipboard</button>
+        <button class="btn primary" id="btn-download">Download</button>
+      </footer>
+    </div>
+  </div>
+
+  <input type="file" id="file-input" accept="image/*,.svg" hidden>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

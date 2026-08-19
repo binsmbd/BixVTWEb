@@ -1,0 +1,13 @@
+{
+  "name": "bix-transform",
+  "version": "1.0.0",
+  "description": "Bix Transform — turn any image into editable vectors, pixel art, halftones and line art, entirely in the browser.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs"
+  },
+  "keywords": ["vectorizer", "image-tracing", "pixel-art", "halftone", "svg", "creative-coding"],
+  "license": "MIT",
+  "private": true
+}

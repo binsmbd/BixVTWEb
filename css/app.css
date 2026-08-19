@@ -18,8 +18,8 @@
   --accent-2: #f4a261;
   --cool: #98c1d9;
   --ok: #6fcf97;
-  --radius: 9px;
-  --radius-sm: 6px;
+  --radius: 3px;
+  --radius-sm: 3px;
   --shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans Thai", sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -138,7 +138,7 @@ select:focus-visible, input:focus-visible, button:focus-visible {
 
 .pill {
   padding: 3px 9px;
-  border-radius: 999px;
+  border-radius: 3px;
   background: var(--panel-2);
   border: 1px solid var(--line);
   color: var(--text-dim);
@@ -249,7 +249,7 @@ select:focus-visible, input:focus-visible, button:focus-visible {
 .dropzone.is-drag { background: rgba(238, 108, 77, 0.12); }
 .dropzone-inner {
   border: 1.5px dashed #2c313d;
-  border-radius: 16px;
+  border-radius: 3px;
   padding: 38px 52px;
   background: rgba(20, 22, 29, 0.72);
   max-width: 460px;
@@ -268,7 +268,7 @@ select:focus-visible, input:focus-visible, button:focus-visible {
   align-items: center;
   gap: 9px;
   padding: 8px 13px;
-  border-radius: 999px;
+  border-radius: 3px;
   background: rgba(20, 22, 29, 0.94);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -370,7 +370,7 @@ select:focus-visible, input:focus-visible, button:focus-visible {
   padding: 0 5px;
   text-align: right;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 3px;
   background: var(--bg-2);
   font-family: var(--mono);
   font-size: 11.5px;
@@ -416,7 +416,7 @@ select:focus-visible, input:focus-visible, button:focus-visible {
   width: 34px; height: 26px;
   padding: 0;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 3px;
   background: var(--bg-2);
   cursor: pointer;
 }
@@ -426,7 +426,7 @@ select:focus-visible, input:focus-visible, button:focus-visible {
   height: 26px;
   padding: 0 7px;
   border: 1px solid var(--line);
-  border-radius: 5px;
+  border-radius: 3px;
   background: var(--bg-2);
   font-family: var(--mono);
   font-size: 11.5px;
@@ -454,9 +454,9 @@ select:focus-visible, input:focus-visible, button:focus-visible {
 .switch input:checked + .switch-track::after { transform: translateX(15px); background: var(--accent); }
 
 .palette-preview { margin-top: 6px; }
-.swatch-strip { display: flex; height: 14px; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+.swatch-strip { display: flex; height: 14px; border-radius: 3px; overflow: hidden; border: 1px solid var(--line); }
 .swatch-strip i { flex: 1; }
-.gradient-preview { margin-top: 6px; height: 14px; border-radius: 4px; border: 1px solid var(--line); }
+.gradient-preview { margin-top: 6px; height: 14px; border-radius: 3px; border: 1px solid var(--line); }
 
 .kv {
   display: flex;
@@ -485,7 +485,7 @@ select:focus-visible, input:focus-visible, button:focus-visible {
   width: min(560px, 92vw);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 3px;
   box-shadow: var(--shadow);
   overflow: hidden;
 }
@@ -557,5 +557,5 @@ select:focus-visible, input:focus-visible, button:focus-visible {
 
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #262a35; border-radius: 6px; border: 3px solid var(--bg-2); }
+::-webkit-scrollbar-thumb { background: #262a35; border-radius: 3px; border: 3px solid var(--bg-2); }
 ::-webkit-scrollbar-thumb:hover { background: #333846; }
